@@ -1,59 +1,70 @@
 import time
 from datetime import datetime
 import pyautogui
+import tkinter as tk
+from tkinter import simpledialog, messagebox
 
-# Função para validar datas no formato dd/mm/yyyy
+# Oculta a janela principal
+root = tk.Tk()
+root.withdraw()
+
 def solicitar_data(msg):
     while True:
-        data = input(msg)
+        data = simpledialog.askstring("Data", msg)
+        if data is None:
+            messagebox.showwarning("Aviso", "Operação cancelada.")
+            exit()
         try:
             datetime.strptime(data, "%d/%m/%Y")
             return data
         except ValueError:
-            print("Data inválida. Use o formato dd/mm/yyyy.")
+            messagebox.showerror("Erro", "Data inválida. Use o formato dd/mm/yyyy.")
 
-# Coleta de dados
-check_in = solicitar_data("Data de check-in (dd/mm/yyyy): ")
-check_out = solicitar_data("Data de check-out (dd/mm/yyyy): ")
+check_in = solicitar_data("Data de check-in (dd/mm/yyyy):")
+check_out = solicitar_data("Data de check-out (dd/mm/yyyy):")
+nome = simpledialog.askstring("Hóspede", "Nome do hóspede:")
+tem_cadastro = simpledialog.askstring("Cadastro", "Tem cadastro? (sim/não):").strip().lower()
+valor_por_dia = int(simpledialog.askstring("Valor", "Valor da diária (apenas números): R$ "))
+categoria_quarto = simpledialog.askstring("Categoria", "Categoria do quarto (STD4, STD6, SUI):").strip().upper()
+quarto = int(simpledialog.askstring("Quarto", "Qual o número do quarto?"))
+pax = int(simpledialog.askstring("Pessoas", "Quantas pessoas tem no quarto?"))
+venda = simpledialog.askstring("Venda", "De quem é a venda?")
 
-nome = input("Nome do hóspede: ")
-tem_cadastro = input("Tem cadastro? (sim/não): ").strip().lower()
-valor_total = float(input("Valor total da estadia: R$ "))
-categoria_quarto = input("Categoria do quarto (STD4, STD6, SUI): ").strip().upper()
-quarto = int(input("Qual quarto (ex: Quarto 1): "))
-pax = int(input("Quantas pessoas tem no quarto?"))
-
-# Cálculo de quantidade de diárias
 dias = (datetime.strptime(check_out, "%d/%m/%Y") - datetime.strptime(check_in, "%d/%m/%Y")).days
-valor_por_dia = valor_total / dias if dias > 0 else valor_total
+valor_total = valor_por_dia * dias if dias > 0 else valor_total
 
-# Exibe resumo
-print("\nResumo:")
-print(f"Check-in: {check_in}, Check-out: {check_out}")
-print(f"Hóspede: {nome}, Cadastro: {tem_cadastro}")
-print(f"Categoria: {categoria_quarto}, Quarto: {quarto}")
-print(f"Valor total: R$ {valor_total:.2f} (R$ {valor_por_dia:.2f} por diária)")
+resumo = f"""
+Check-in: {check_in}
+Check-out: {check_out}
+Hóspede: {nome}
+Cadastro: {tem_cadastro}
+Categoria: {categoria_quarto}
+Quarto: {quarto}
+Valor total: R$ {valor_total} (R$ {valor_por_dia:.2f}/dia)
+"""
+messagebox.showinfo("Resumo da Reserva", resumo)
 
-# Espera alguns segundos para você posicionar o mouse
-print("Você tem 5 segundos para posicionar o mouse...")
+messagebox.showinfo("Atenção", "Você tem 5 segundos para posicionar o mouse...")
 time.sleep(5)
+
 
 # Automatização com PyAutoGUI
 pyautogui.click(x=1170, y=487)
-time.sleep(10)
+time.sleep(1)
 
 pyautogui.press("tab")
-time.sleep(10)
+time.sleep(1)
 
 pyautogui.press("tab")
-time.sleep(10)
+time.sleep(1)
 
 pyautogui.write("PARTICULAR", interval=0.1)
 pyautogui.press("tab")
+time.sleep(1)
 
 pyautogui.doubleClick(x=137, y=395)
 pyautogui.doubleClick(x=589, y=353)
-time.sleep(10)
+time.sleep(1)
 
 pyautogui.press("down")
 pyautogui.press("tab")
@@ -147,19 +158,19 @@ pyautogui.press("tab")
 pyautogui.press("down")
 pyautogui.press("enter")
 
-pyautogui.click(x=442, y=521)
+pyautogui.click(x=446, y=523)
 
-pyautogui.write(f"{valor_total:.2f}", interval=0.1)
+pyautogui.write(str(valor_por_dia), interval=0.1)
 
 pyautogui.click(x=893, y=506)
-time.sleep(2)
+time.sleep(1)
 
 pyautogui.click(x=57, y=554)
-time.sleep(2)
+time.sleep(1)
 
 pyautogui.write(nome, interval=0.1)
 pyautogui.press("tab")
-time.sleep(2)
+time.sleep(1)
 
 pyautogui.doubleClick(x=439, y=415)
 pyautogui.doubleClick(x=924, y=372)
@@ -173,7 +184,7 @@ pyautogui.press("pagedown")
 pyautogui.click(x=406, y=203)
 time.sleep(1)
 
-pyautogui.write("ERIK", interval=0.1)
+pyautogui.write(venda, interval=0.1)
 
 pyautogui.press("tab")
 pyautogui.press("enter")
@@ -212,10 +223,7 @@ for _ in range(7):
     pyautogui.press("tab")
 time.sleep(1)
 
-# LEGENDA quantidade de diarias (Quantidade de diarias[Dia do Check in - Dia do Check out], valor total [valor da diaria x quantidade de diarias], numero de pessoas no quarto [Pax])
-pyautogui.write("DIARIAS: ... \n" \
-"Valor total: ... \n" \
-"Pax: ...", interval=0.1)
+pyautogui.write(f"DIARIAS: {dias}\nValor total: R$ {valor_total}\nPax: {pax}", interval=0.1)
 
 pyautogui.hotkey('ctrl', 'a')
 time.sleep(0.5)
@@ -225,4 +233,4 @@ pyautogui.press("tab")
 
 pyautogui.hotkey('ctrl', 'v')
 
-pyautogui.click(x=1150, y=700)
+# pyautogui.click(x=1150, y=700)
